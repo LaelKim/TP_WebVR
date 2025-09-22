@@ -20,7 +20,7 @@
           let y = e.detail.y;
           if (Math.abs(x) < 0.05 && Math.abs(y) < 0.05) return;
 
-          if (this.data.invertY) y = -y; // Active l’inversion si nécessaire
+          if (this.data.invertY) y = y; // Active l’inversion si nécessaire
 
           const rig = document.querySelector('#rig');
           const cam = document.querySelector('#playerCam');
