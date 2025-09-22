@@ -9,26 +9,31 @@
   <script>
     // Déplacement avec joystick gauche (avant / arrière / gauche / droite)
     AFRAME.registerComponent('joystick-move', {
-      schema: { speed: {type:'number', default: 3} },
+      schema: {
+        speed: {type:'number', default: 3},
+        invertY: {type:'boolean', default: false}
+      },
       init() {
         this.dir = new THREE.Vector3();
         this.el.addEventListener('thumbstickmoved', e => {
-          const x = e.detail.x; // gauche (-) droite (+)
-          const y = e.detail.y; // avant (-) arrière (+)
+          let x = e.detail.x;
+          let y = e.detail.y;
           if (Math.abs(x) < 0.05 && Math.abs(y) < 0.05) return;
 
-            const rig = document.querySelector('#rig');
-            const cam = document.querySelector('#playerCam');
+          if (this.data.invertY) y = -y; // Active l’inversion si nécessaire
+
+          const rig = document.querySelector('#rig');
+          const cam = document.querySelector('#playerCam');
 
           cam.object3D.getWorldDirection(this.dir);
           this.dir.y = 0;
           this.dir.normalize();
 
-          // vecteur latéral
           const side = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), this.dir).normalize();
 
           const move = new THREE.Vector3();
-          move.addScaledVector(this.dir, -y);   // avant = y négatif
+          // Ici on n’inverse plus par défaut (avant = pousser le stick vers l'avant)
+          move.addScaledVector(this.dir, -y); // si avant donne mouvement arrière, mets invertY:true sur l’entité
           move.addScaledVector(side, x);
           move.multiplyScalar(this.data.speed * (this.delta || 0.016));
           rig.object3D.position.add(move);
@@ -37,7 +42,7 @@
       tick(t, dt){ this.delta = dt/1000; }
     });
 
-    // Rotation avec joystick droit (rotation Y du rig)
+    // Rotation avec joystick droit (inchangé)
     AFRAME.registerComponent('joystick-turn', {
       schema: { turnSpeed: {type:'number', default: 80} },
       init() {
