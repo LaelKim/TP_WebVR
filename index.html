@@ -2,30 +2,41 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Exercice 1 - Étape 1</title>
+  <title>Exercice 1 - Étape 2</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
-  <a-scene>
-    <!-- Sol -->
+  <a-scene shadow="type: pcfsoft">
+    <!-- Lumière ambiante (lumière globale douce) -->
+    <a-entity light="type: ambient; intensity: 0.4; color: #ffffff"></a-entity>
+
+    <!-- Lumière directionnelle (soleil) avec ombres -->
+    <a-entity light="type: directional; intensity: 0.9; castShadow: true;
+                     shadowMapWidth:2048; shadowMapHeight:2048"
+              position="4 8 2"></a-entity>
+
+    <!-- Sol (reçoit les ombres) -->
     <a-plane position="0 0 0"
              rotation="-90 0 0"
              width="20"
              height="20"
-             color="#7BC8A4"></a-plane>
+             color="#7BC8A4"
+             shadow="receive: true"></a-plane>
 
-    <!-- Cube -->
+    <!-- Cube (projette et reçoit) -->
     <a-box position="-2 1 -4"
            width="1" height="1" depth="1"
-           color="#4CC3D9"></a-box>
+           color="#4CC3D9"
+           shadow="cast: true; receive: true"></a-box>
 
-    <!-- Sphère -->
+    <!-- Sphère (projette et reçoit) -->
     <a-sphere position="2 1 -4"
               radius="1"
-              color="#EF2D5E"></a-sphere>
+              color="#EF2D5E"
+              shadow="cast: true; receive: true"></a-sphere>
 
-    <!-- Caméra simple (temporaire, sera remplacée par un rig plus tard) -->
+    <!-- Caméra -->
     <a-entity camera position="0 1.6 0"></a-entity>
   </a-scene>
 </body>
