@@ -7,7 +7,7 @@
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <!-- Physique -->
   <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
-  <!-- Super Hands (grab) -->
+  <!-- Super Hands -->
   <script src="https://cdn.jsdelivr.net/npm/super-hands@4.0.5/dist/super-hands.min.js"></script>
 
   <script>
@@ -26,7 +26,7 @@
           if (this.data.invertX) x = -x;
           if (this.data.invertY) y = -y;
           this.cam.object3D.getWorldDirection(this.forward);
-          this.forward.y = 0; this.forward.normalize();
+            this.forward.y = 0; this.forward.normalize();
           this.side.crossVectors(new THREE.Vector3(0,1,0), this.forward).normalize();
           this.tmp.set(0,0,0)
             .addScaledVector(this.forward, -y)
@@ -45,7 +45,7 @@
         this.rig = document.querySelector('#rig');
         this.el.addEventListener('thumbstickmoved', e => {
           const x = e.detail.x;
-            if (Math.abs(x) < 0.08) return;
+          if (Math.abs(x) < 0.08) return;
           this.rig.object3D.rotation.y -= THREE.MathUtils.degToRad(
             x * this.data.turnSpeed * (this.delta || 0.016)
           );
@@ -57,63 +57,58 @@
 </head>
 <body>
   <a-scene shadow="type: pcfsoft" physics="gravity:-9.8">
-    <!-- Lumière ambiante -->
-    <a-entity light="type: ambient; intensity: 0.4; color: #ffffff"></a-entity>
+    <!-- Lumières -->
+    <a-entity light="type: ambient; intensity: 0.45; color:#ffffff"></a-entity>
+    <a-entity light="type: directional; intensity:1; castShadow:true; shadowMapWidth:2048; shadowMapHeight:2048"
+              position="5 8 4"></a-entity>
 
-    <!-- Lumière directionnelle -->
-    <a-entity light="type: directional; intensity: 0.9; castShadow:true; shadowMapWidth:2048; shadowMapHeight:2048"
-              position="4 8 2"></a-entity>
+    <!-- Sol -->
+    <a-plane rotation="-90 0 0" width="24" height="24" color="#6fae78"
+             shadow="receive:true" static-body></a-plane>
 
-    <!-- Sol (statique) -->
-    <a-plane position="0 0 0"
-             rotation="-90 0 0"
-             width="20" height="20"
-             color="#7BC8A4"
-             shadow="receive:true"
-             static-body></a-plane>
-
-    <!-- Cube grabbable -->
-    <a-box position="-2 1.2 -4"
-           width="1" height="1" depth="1"
-           color="#4CC3D9"
+    <!-- Objets grabbable -->
+    <a-box position="-1.5 1.2 -4" width="1" height="1" depth="1" color="#4CC3D9"
            class="grabbable"
+           grabbable hoverable
            shadow="cast:true; receive:true"
-           dynamic-body></a-box>
+           dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.01"></a-box>
 
-    <!-- Sphère grabbable -->
-    <a-sphere position="2 1.5 -4"
-              radius="1"
-              color="#EF2D5E"
+    <a-sphere position="1.5 1.5 -4" radius="0.8" color="#EF2D5E"
               class="grabbable"
+              grabbable hoverable
               shadow="cast:true; receive:true"
-              dynamic-body></a-sphere>
+              dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.01"></a-sphere>
 
-    <!-- Rig + caméra + contrôleurs -->
+    <!-- Rig -->
     <a-entity id="rig" position="0 0 0">
       <a-entity id="playerCam" camera position="0 1.6 0" look-controls wasd-controls="enabled:false"></a-entity>
 
-      <!-- Main gauche : déplacement + grab -->
+      <!-- Main gauche -->
       <a-entity id="leftHand"
                 oculus-touch-controls="hand: left"
                 vive-controls="hand: left"
                 valve-index-controls="hand: left"
                 windows-motion-controls="hand: left"
                 joystick-move="invertY:true"
-                super-hands
                 sphere-collider="objects: .grabbable"
-                physics-collider></a-entity>
+                physics-collider="ignoreSleep:true"
+                super-hands="colliderEvent: collisions; colliderEventProperty: els; colliderEndEvent: collisionsend; grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup">
+      </a-entity>
 
-      <!-- Main droite : rotation + grab -->
+      <!-- Main droite -->
       <a-entity id="rightHand"
                 oculus-touch-controls="hand: right"
                 vive-controls="hand: right"
                 valve-index-controls="hand: right"
                 windows-motion-controls="hand: right"
                 joystick-turn
-                super-hands
                 sphere-collider="objects: .grabbable"
-                physics-collider></a-entity>
+                physics-collider="ignoreSleep:true"
+                super-hands="colliderEvent: collisions; colliderEventProperty: els; colliderEndEvent: collisionsend; grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup">
+      </a-entity>
     </a-entity>
+
+    <a-sky color="#87c6ff"></a-sky>
   </a-scene>
 </body>
 </html>
