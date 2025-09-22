@@ -34,6 +34,7 @@
       tick(t,dt){ this.delta=dt/1000; }
     });
 
+    // Rotation
     AFRAME.registerComponent('joystick-turn', {
       schema:{turnSpeed:{type:'number',default:80}},
       init(){
@@ -46,12 +47,13 @@
       tick(t,dt){ this.delta=dt/1000; }
     });
 
-    // Debug événements super-hands
+    // Debug
     AFRAME.registerComponent('grab-debug', {
       init(){
-        ['grab-start','grab-end','hover-start','hover-end'].forEach(ev=>{
-          this.el.addEventListener(ev, e=>console.log('[', this.el.id || 'hand', ']', ev, '=>', e.detail && e.detail.hand && e.detail.hand.id));
-        });
+        const evs=['grab-start','grab-end','hover-start','hover-end','triggerdown','triggerup','gripdown','gripup'];
+        evs.forEach(ev=>this.el.addEventListener(ev, e=>{
+          console.log('[', this.el.id || 'hand', ']', ev, e.detail||'');
+        }));
       }
     });
   </script>
@@ -68,13 +70,13 @@
              shadow="receive:true" static-body></a-plane>
 
     <!-- Objets -->
-    <a-box position="-1.5 2 -4" width="1" height="1" depth="1" color="#4CC3D9"
+    <a-box position="-1.5 1.4 -4" width="1" height="1" depth="1" color="#4CC3D9"
            class="grabbable"
            grabbable hoverable
            shadow="cast:true; receive:true"
            dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.02"></a-box>
 
-    <a-sphere position="1.5 2 -4" radius="0.8" color="#EF2D5E"
+    <a-sphere position="1.5 1.8 -4" radius="0.8" color="#EF2D5E"
               class="grabbable"
               grabbable hoverable
               shadow="cast:true; receive:true"
@@ -86,20 +88,20 @@
 
       <!-- Main gauche -->
       <a-entity id="leftHand"
-                hand-controls="hand: left"
                 oculus-touch-controls="hand: left"
                 joystick-move="invertY:true"
-                sphere-collider="objects: .grabbable; radius:0.12"
-                super-hands
+                kinematic-body="shape:sphere; radius:0.05"
+                physics-collider
+                super-hands="grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
                 grab-debug></a-entity>
 
       <!-- Main droite -->
       <a-entity id="rightHand"
-                hand-controls="hand: right"
                 oculus-touch-controls="hand: right"
                 joystick-turn
-                sphere-collider="objects: .grabbable; radius:0.12"
-                super-hands
+                kinematic-body="shape:sphere; radius:0.05"
+                physics-collider
+                super-hands="grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
                 grab-debug></a-entity>
     </a-entity>
 
