@@ -2,21 +2,66 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Exercice 1 - Étape 2</title>
+  <title>Exercice 1 - Étape 3 (Rig + Joysticks)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <script>
+    // Déplacement avec joystick gauche (avant / arrière / gauche / droite)
+    AFRAME.registerComponent('joystick-move', {
+      schema: { speed: {type:'number', default: 3} },
+      init() {
+        this.dir = new THREE.Vector3();
+        this.el.addEventListener('thumbstickmoved', e => {
+          const x = e.detail.x; // gauche (-) droite (+)
+          const y = e.detail.y; // avant (-) arrière (+)
+          if (Math.abs(x) < 0.05 && Math.abs(y) < 0.05) return;
+
+            const rig = document.querySelector('#rig');
+            const cam = document.querySelector('#playerCam');
+
+          cam.object3D.getWorldDirection(this.dir);
+          this.dir.y = 0;
+          this.dir.normalize();
+
+          // vecteur latéral
+          const side = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), this.dir).normalize();
+
+          const move = new THREE.Vector3();
+          move.addScaledVector(this.dir, -y);   // avant = y négatif
+          move.addScaledVector(side, x);
+          move.multiplyScalar(this.data.speed * (this.delta || 0.016));
+          rig.object3D.position.add(move);
+        });
+      },
+      tick(t, dt){ this.delta = dt/1000; }
+    });
+
+    // Rotation avec joystick droit (rotation Y du rig)
+    AFRAME.registerComponent('joystick-turn', {
+      schema: { turnSpeed: {type:'number', default: 80} },
+      init() {
+        this.el.addEventListener('thumbstickmoved', e => {
+          const x = e.detail.x;
+          if (Math.abs(x) < 0.08) return;
+          const rig = document.querySelector('#rig');
+          rig.object3D.rotation.y -= THREE.MathUtils.degToRad(x * this.data.turnSpeed * (this.delta || 0.016));
+        });
+      },
+      tick(t, dt){ this.delta = dt/1000; }
+    });
+  </script>
 </head>
 <body>
   <a-scene shadow="type: pcfsoft">
-    <!-- Lumière ambiante (lumière globale douce) -->
+    <!-- Lumière ambiante -->
     <a-entity light="type: ambient; intensity: 0.4; color: #ffffff"></a-entity>
 
-    <!-- Lumière directionnelle (soleil) avec ombres -->
-    <a-entity light="type: directional; intensity: 0.9; castShadow: true;
-                     shadowMapWidth:2048; shadowMapHeight:2048"
+    <!-- Lumière directionnelle -->
+    <a-entity light="type: directional; intensity: 0.9; castShadow: true; shadowMapWidth:2048; shadowMapHeight:2048"
               position="4 8 2"></a-entity>
 
-    <!-- Sol (reçoit les ombres) -->
+    <!-- Sol -->
     <a-plane position="0 0 0"
              rotation="-90 0 0"
              width="20"
@@ -24,20 +69,38 @@
              color="#7BC8A4"
              shadow="receive: true"></a-plane>
 
-    <!-- Cube (projette et reçoit) -->
+    <!-- Cube -->
     <a-box position="-2 1 -4"
            width="1" height="1" depth="1"
            color="#4CC3D9"
            shadow="cast: true; receive: true"></a-box>
 
-    <!-- Sphère (projette et reçoit) -->
+    <!-- Sphère -->
     <a-sphere position="2 1 -4"
               radius="1"
               color="#EF2D5E"
               shadow="cast: true; receive: true"></a-sphere>
 
-    <!-- Caméra -->
-    <a-entity camera position="0 1.6 0"></a-entity>
+    <!-- Rig + caméra + contrôleurs -->
+    <a-entity id="rig" position="0 0 0">
+      <a-entity id="playerCam" camera position="0 1.6 0" look-controls wasd-controls="enabled:false"></a-entity>
+
+      <!-- Contrôleur gauche: déplacement -->
+      <a-entity id="leftHand"
+                oculus-touch-controls="hand: left"
+                vive-controls="hand: left"
+                valve-index-controls="hand: left"
+                windows-motion-controls="hand: left"
+                joystick-move></a-entity>
+
+      <!-- Contrôleur droit: rotation -->
+      <a-entity id="rightHand"
+                oculus-touch-controls="hand: right"
+                vive-controls="hand: right"
+                valve-index-controls="hand: right"
+                windows-motion-controls="hand: right"
+                joystick-turn></a-entity>
+    </a-entity>
   </a-scene>
 </body>
 </html>
