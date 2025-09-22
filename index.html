@@ -70,13 +70,15 @@
              shadow="receive:true" static-body></a-plane>
 
     <!-- Objets -->
-    <a-box position="-1.5 1.4 -4" width="1" height="1" depth="1" color="#4CC3D9"
+    <!-- Cube (centre à 0.5 pour un cube hauteur 1) -->
+    <a-box position="-1.5 0.5 -4" width="1" height="1" depth="1" color="#4CC3D9"
            class="grabbable"
            grabbable hoverable
            shadow="cast:true; receive:true"
            dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.02"></a-box>
 
-    <a-sphere position="1.5 1.8 -4" radius="0.8" color="#EF2D5E"
+    <!-- Sphère (centre à son rayon: 0.8) -->
+    <a-sphere position="1.5 0.8 -4" radius="0.8" color="#EF2D5E"
               class="grabbable"
               grabbable hoverable
               shadow="cast:true; receive:true"
