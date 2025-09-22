@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Exercice 1 - Étape 1</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+</head>
+<body>
+  <a-scene>
+    <!-- Sol -->
+    <a-plane position="0 0 0"
+             rotation="-90 0 0"
+             width="20"
+             height="20"
+             color="#7BC8A4"></a-plane>
+
+    <!-- Cube -->
+    <a-box position="-2 1 -4"
+           width="1" height="1" depth="1"
+           color="#4CC3D9"></a-box>
+
+    <!-- Sphère -->
+    <a-sphere position="2 1 -4"
+              radius="1"
+              color="#EF2D5E"></a-sphere>
+
+    <!-- Caméra simple (temporaire, sera remplacée par un rig plus tard) -->
+    <a-entity camera position="0 1.6 0"></a-entity>
+  </a-scene>
+</body>
+</html>
