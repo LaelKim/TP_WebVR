@@ -1,134 +1,105 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Exercice 2 - Grab avec Raycaster (corrigé)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-
-  <!-- A-Frame -->
+  <meta charset="UTF-8">
+  <title>Exercice 2 - Grab avec Raycaster</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
   <!-- Physique -->
   <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
-
   <!-- Super Hands -->
   <script src="https://cdn.jsdelivr.net/npm/super-hands@4.0.5/dist/super-hands.min.js"></script>
 
   <script>
-    // Locomotion (stick gauche): avant/arrière/gauche/droite aligné caméra
+    // Locomotion
     AFRAME.registerComponent('joystick-move', {
-      schema: {
-        speed: {type:'number', default: 3},
-        invertX: {type:'boolean', default: false},
-        invertY: {type:'boolean', default: false}
-      },
+      schema:{speed:{type:'number',default:3}, invertX:{type:'boolean',default:false}, invertY:{type:'boolean',default:false}},
       init(){
-        this.fwd = new THREE.Vector3();
-        this.right = new THREE.Vector3();
-        this.tmp = new THREE.Vector3();
-        this.rig = document.querySelector('#rig');
-        this.cam = document.querySelector('#playerCam');
-
+        this.fwd=new THREE.Vector3(); this.side=new THREE.Vector3(); this.tmp=new THREE.Vector3();
+        this.rig=document.querySelector('#rig'); this.cam=document.querySelector('#playerCam');
         this.el.addEventListener('thumbstickmoved', e=>{
-          let {x, y} = e.detail;
-
-          // zone morte
-          if (Math.abs(x) < 0.05 && Math.abs(y) < 0.05) return;
-
-          if (this.data.invertX) x = -x;
-          if (this.data.invertY) y = -y;
-
-          // direction avant selon la caméra
+          let {x,y}=e.detail;
+          if(Math.abs(x)<0.05 && Math.abs(y)<0.05) return;
+          if(this.data.invertX) x=-x; if(this.data.invertY) y=-y;
           this.cam.object3D.getWorldDirection(this.fwd);
-          this.fwd.y = 0;
-          this.fwd.normalize();
-
-          // vecteur droite = fwd × up (et pas up × fwd)
-          this.right.crossVectors(this.fwd, new THREE.Vector3(0,1,0)).normalize();
-
-          // sur la plupart des cas VR, pousser stick vers l'avant => y ≈ -1
+          this.fwd.y=0; this.fwd.normalize();
+          this.side.crossVectors(new THREE.Vector3(0,1,0), this.fwd).normalize();
           this.tmp.set(0,0,0)
-            .addScaledVector(this.fwd, -y)   // -y pour "avant"
-            .addScaledVector(this.right, x)
-            .multiplyScalar(this.data.speed * (this.delta || 0.016));
-
+            .addScaledVector(this.fwd, -y)
+            .addScaledVector(this.side, x)
+            .multiplyScalar(this.data.speed*(this.delta||0.016));
           this.rig.object3D.position.add(this.tmp);
         });
       },
-      tick(t, dt){ this.delta = dt/1000; }
+      tick(t,dt){ this.delta=dt/1000; }
     });
 
-    // Rotation (stick droit)
+    // Rotation
     AFRAME.registerComponent('joystick-turn', {
-      schema: { turnSpeed: {type:'number', default: 80} },
+      schema:{turnSpeed:{type:'number',default:80}},
       init(){
-        this.rig = document.querySelector('#rig');
+        this.rig=document.querySelector('#rig');
         this.el.addEventListener('thumbstickmoved', e=>{
-          const x = e.detail.x;
-          if (Math.abs(x) < 0.08) return;
-          this.rig.object3D.rotation.y -= THREE.MathUtils.degToRad(
-            x * this.data.turnSpeed * (this.delta || 0.016)
-          );
+          const x=e.detail.x; if(Math.abs(x)<0.08) return;
+          this.rig.object3D.rotation.y -= THREE.MathUtils.degToRad(x*this.data.turnSpeed*(this.delta||0.016));
         });
       },
-      tick(t, dt){ this.delta = dt/1000; }
+      tick(t,dt){ this.delta=dt/1000; }
     });
 
-    // Debug événements de grab/hover
+    // Debug
     AFRAME.registerComponent('grab-debug', {
       init(){
-        const evs = ['hover-start','hover-end','grab-start','grab-end','triggerdown','triggerup','gripdown','gripup'];
-        evs.forEach(ev => this.el.addEventListener(ev, e=>{
-          console.log('[', this.el.id || 'hand', ']', ev, e.detail || '');
+        const evs=['grab-start','grab-end','hover-start','hover-end','triggerdown','triggerup','gripdown','gripup'];
+        evs.forEach(ev=>this.el.addEventListener(ev, e=>{
+          console.log('[', this.el.id || 'hand', ']', ev, e.detail||'');
         }));
       }
     });
   </script>
 </head>
 <body>
-  <a-scene shadow="type: pcfsoft" physics="gravity: -9.8">
+  <a-scene shadow="type: pcfsoft" physics="gravity:-9.8">
     <!-- Lumières -->
-    <a-entity light="type: ambient; intensity: 0.45; color: #fff"></a-entity>
-    <a-entity light="type: directional; intensity: 1; castShadow: true; shadowMapWidth: 2048; shadowMapHeight: 2048"
+    <a-entity light="type: ambient; intensity:0.45; color:#fff"></a-entity>
+    <a-entity light="type: directional; intensity:1; castShadow:true; shadowMapWidth:2048; shadowMapHeight:2048"
               position="5 8 4"></a-entity>
 
-    <!-- Sol (statique) -->
+    <!-- Sol -->
     <a-plane rotation="-90 0 0" width="24" height="24" color="#6fae78"
-             shadow="receive: true" static-body></a-plane>
+             shadow="receive:true" static-body></a-plane>
 
-    <!-- Objets dynamiques grabbables -->
+    <!-- Objets -->
     <a-box position="-1.5 0.5 -4" width="1" height="1" depth="1" color="#4CC3D9"
            class="grabbable"
            grabbable hoverable
-           shadow="cast: true; receive: true"
-           dynamic-body="mass: 1; angularDamping: 0.2; linearDamping: 0.02"></a-box>
+           shadow="cast:true; receive:true"
+           dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.02"></a-box>
 
     <a-sphere position="1.5 0.8 -4" radius="0.8" color="#EF2D5E"
               class="grabbable"
               grabbable hoverable
-              shadow="cast: true; receive: true"
-              dynamic-body="mass: 1; angularDamping: 0.2; linearDamping: 0.02"></a-sphere>
+              shadow="cast:true; receive:true"
+              dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.02"></a-sphere>
 
-    <!-- Rig + Caméra + Mains -->
+    <!-- Rig -->
     <a-entity id="rig" position="0 0 0">
       <a-entity id="playerCam" camera position="0 1.6 0" look-controls wasd-controls="enabled:false"></a-entity>
 
-      <!-- Main gauche: locomotion + ray-grab -->
+      <!-- Main gauche avec Raycaster -->
       <a-entity id="leftHand"
                 oculus-touch-controls="hand: left"
-                joystick-move="invertY: true"
+                joystick-move="invertY:true"
                 raycaster="objects: .grabbable; showLine: true; far: 5"
-                super-hands="colliderEvent: raycaster-intersection; colliderEventProperty: els;
-                             grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
+                super-hands="grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
                 grab-debug></a-entity>
 
-      <!-- Main droite: rotation + ray-grab -->
+      <!-- Main droite avec Raycaster -->
       <a-entity id="rightHand"
                 oculus-touch-controls="hand: right"
                 joystick-turn
                 raycaster="objects: .grabbable; showLine: true; far: 5"
-                super-hands="colliderEvent: raycaster-intersection; colliderEventProperty: els;
-                             grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
+                super-hands="grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
                 grab-debug></a-entity>
     </a-entity>
 
