@@ -32,8 +32,11 @@
     <a-scene 
       shadow="type: pcfsoft" 
       renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true"
-      physics="driver: local; gravity: -9.8;"  
+      physics="driver: local; gravity: -9.8;"
       xr-mode-ui="enabled: true">
+
+      <!-- Debug physique (facultatif) -->
+      <a-entity physics-debug></a-entity>
 
       <!-- Actifs éventuels -->
       <a-assets>
@@ -52,8 +55,9 @@
                shadow="receive: true" static-body></a-plane>
 
       <!-- Objets simples (Exo 1) | dynamiques (Exo 2) -->
-      <a-box position="-1 0.5 -3" depth="1" height="1" width="1" color="#4CC3D9"
-             shadow="cast: true; receive: true" class="grabbable" dynamic-body hoverable grabbable draggable></a-box>
+      <a-box$1class="grabbable"$2
+             hoverable grabbable draggable
+             dynamic-body></a-box>
 
       <a-sphere position="1 1.25 -4" radius="1.25" color="#EF2D5E"
                 shadow="cast: true; receive: true" class="grabbable" dynamic-body hoverable grabbable draggable></a-sphere>
@@ -67,16 +71,16 @@
 
         <!-- Main gauche: déplacement au joystick -->
         <a-entity id="leftHand"
-                  hand-controls="hand: left; handModelStyle: lowPoly"
-                  super-hands
-                  sphere-collider="objects: .grabbable"
+                  hand-controls="hand: left; handModelStyle: lowPoly; color: #88c"
+                  super-hands="colliderEvent: collisions; grabStartButtons: gripdown, triggerdown; grabEndButtons: gripup, triggerup; dragDropStartButtons: triggerdown"
+                  sphere-collider="objects: .grabbable; radius: 0.14"
                   thumbstick-move="rig: #rig; head: #hmd; speed: 2.8"></a-entity>
 
         <!-- Main droite: rotation (snap) au joystick -->
         <a-entity id="rightHand"
-                  hand-controls="hand: right; handModelStyle: lowPoly"
-                  super-hands
-                  sphere-collider="objects: .grabbable"
+                  hand-controls="hand: right; handModelStyle: lowPoly; color: #c88"
+                  super-hands="colliderEvent: collisions; grabStartButtons: gripdown, triggerdown; grabEndButtons: gripup, triggerup; dragDropStartButtons: triggerdown"
+                  sphere-collider="objects: .grabbable; radius: 0.14"
                   thumbstick-rotate="rig: #rig; snap: 30; deadzone: 0.2; cooldownMs: 250"></a-entity>
       </a-entity>
 
