@@ -43,13 +43,16 @@
 
     <!-- Objets -->
     <a-box position="-1 0.5 -3" depth="1" height="1" width="1" color="#4CC3D9"
-           class="grabbable" grabbable dynamic-body shadow="cast:true; receive:true"></a-box>
+           class="grabbable" grabbable="startButtons: gripDown; endButtons: gripUp"
+           physics-collider dynamic-body shadow="cast:true; receive:true"></a-box>
 
     <a-sphere position="1 1.25 -4" radius="1.25" color="#EF2D5E"
-              class="grabbable" grabbable dynamic-body shadow="cast:true; receive:true"></a-sphere>
+              class="grabbable" grabbable="startButtons: gripDown; endButtons: gripUp"
+              physics-collider dynamic-body shadow="cast:true; receive:true"></a-sphere>
 
     <a-cylinder position="3 1 -5" radius="0.6" height="1.6" color="#FFC65D"
-                class="grabbable" grabbable dynamic-body shadow="cast:true; receive:true"></a-cylinder>
+                class="grabbable" grabbable="startButtons: gripDown; endButtons: gripUp"
+                physics-collider dynamic-body shadow="cast:true; receive:true"></a-cylinder>
 
     <!-- RIG + mains -->
     <a-entity id="rig" position="0 1.6 3">
@@ -59,6 +62,7 @@
       <a-entity id="leftHand"
                 hand-controls="hand: left; handModelStyle: lowPoly"
                 super-hands
+                static-body="shape: sphere; sphereRadius: 0.15"
                 sphere-collider="objects: .grabbable; radius: 0.15"
                 punch-push
                 thumbstick-move="rig: #rig; head: #hmd; speed: 2.8"></a-entity>
@@ -67,6 +71,7 @@
       <a-entity id="rightHand"
                 hand-controls="hand: right; handModelStyle: lowPoly"
                 super-hands
+                static-body="shape: sphere; sphereRadius: 0.15"
                 sphere-collider="objects: .grabbable; radius: 0.15"
                 punch-push
                 thumbstick-rotate="rig: #rig; snap: 30; deadzone: 0.2; cooldownMs: 250"></a-entity>
