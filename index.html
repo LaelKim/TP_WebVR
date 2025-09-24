@@ -2,25 +2,27 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Exercices VR — A-Frame Grab + Physique</title>
+  <title>Exercices VR — Physique VR Classique</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
-  <!-- Core + Physique + Super Hands -->
+  <!-- A-Frame Core -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <!-- Système de Physique (Ammo.js) -->
   <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
+  <!-- Super Hands pour le Grab -->
   <script src="https://cdn.jsdelivr.net/npm/super-hands@4.0.5/dist/super-hands.min.js"></script>
 
   <script>
     // Locomotion (stick gauche = déplacement)
     AFRAME.registerComponent('joystick-move', {
-      schema:{speed:{type:'number',default:3}, invertX:{type:'boolean',default:false}, invertY:{type:'boolean',default:false}},
+      schema:{speed:{type:'number',default:3}, invertY:{type:'boolean',default:false}},
       init(){
         this.fwd=new THREE.Vector3(); this.side=new THREE.Vector3(); this.tmp=new THREE.Vector3();
         this.rig=document.querySelector('#rig'); this.cam=document.querySelector('#playerCam');
         this.el.addEventListener('thumbstickmoved', e=>{
           let {x,y}=e.detail;
           if(Math.abs(x)<0.05 && Math.abs(y)<0.05) return;
-          if(this.data.invertX) x=-x; if(this.data.invertY) y=-y;
+          if(this.data.invertY) y=-y;
           this.cam.object3D.getWorldDirection(this.fwd);
           this.fwd.y=0; this.fwd.normalize();
           this.side.crossVectors(new THREE.Vector3(0,1,0), this.fwd).normalize();
@@ -46,20 +48,10 @@
       },
       tick(t,dt){ this.delta=dt/1000; }
     });
-
-    // Debug des événements de grab
-    AFRAME.registerComponent('grab-debug', {
-      init(){
-        const evs=['grab-start','grab-end','hover-start','hover-end','triggerdown','triggerup','gripdown','gripup'];
-        evs.forEach(ev=>this.el.addEventListener(ev, e=>{
-          console.log('[', this.el.id || 'hand', ']', ev, e.detail||'');
-        }));
-      }
-    });
   </script>
 </head>
 <body>
-  <a-scene shadow="type: pcfsoft" physics="gravity:-9.8">
+  <a-scene shadow="type: pcfsoft" physics="driver: ammo; gravity:-9.8; debug: false">
     <!-- Lumières -->
     <a-entity light="type: ambient; intensity:0.45; color:#fff"></a-entity>
     <a-entity light="type: directional; intensity:1; castShadow:true; shadowMapWidth:2048; shadowMapHeight:2048"
@@ -67,40 +59,43 @@
 
     <!-- Sol -->
     <a-plane rotation="-90 0 0" width="24" height="24" color="#6fae78"
-             shadow="receive:true" static-body></a-plane>
+             shadow="receive:true"
+             ammo-body="type: static" ammo-shape="type: box"></a-plane>
 
     <!-- Objets interactifs -->
     <a-box position="-1.5 0.5 -4" width="1" height="1" depth="1" color="#4CC3D9"
            class="grabbable"
            grabbable hoverable
            shadow="cast:true; receive:true"
-           dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.02"></a-box>
+           ammo-body="type: dynamic; mass: 2" ammo-shape="type: box"></a-box>
 
-    <a-sphere position="1.5 0.8 -4" radius="0.8" color="#EF2D5E"
+    <a-sphere position="1.5 0.8 -4" radius="0.5" color="#EF2D5E"
               class="grabbable"
               grabbable hoverable
               shadow="cast:true; receive:true"
-              dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.02"></a-sphere>
+              ammo-body="type: dynamic; mass: 2" ammo-shape="type: sphere"></a-sphere>
 
     <!-- Rig + camera + mains -->
     <a-entity id="rig" position="0 0 0">
       <a-entity id="playerCam" camera position="0 1.6 0" look-controls wasd-controls="enabled:false"></a-entity>
 
-      <!-- Main gauche (move + laser grab) -->
+      <!-- Main gauche (physique) -->
       <a-entity id="leftHand"
                 oculus-touch-controls="hand: left"
                 joystick-move="invertY:true"
-                raycaster="objects: .grabbable; showLine: true; far: 5"
-                super-hands="grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
-                grab-debug></a-entity>
+                ammo-body="type: kinematic"
+                ammo-shape="type: sphere; fit: manual; sphereRadius: 0.08"
+                super-hands="colliderEvent: collisions; colliderEventProperty: els; colliderEndEvent: collisionsend; grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup">
+      </a-entity>
 
-      <!-- Main droite (turn + laser grab) -->
+      <!-- Main droite (physique) -->
       <a-entity id="rightHand"
                 oculus-touch-controls="hand: right"
                 joystick-turn
-                raycaster="objects: .grabbable; showLine: true; far: 5"
-                super-hands="grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
-                grab-debug></a-entity>
+                ammo-body="type: kinematic"
+                ammo-shape="type: sphere; fit: manual; sphereRadius: 0.08"
+                super-hands="colliderEvent: collisions; colliderEventProperty: els; colliderEndEvent: collisionsend; grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup">
+      </a-entity>
     </a-entity>
 
     <a-sky color="#87c6ff"></a-sky>
