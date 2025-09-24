@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Exercice 2 - Grab avec Raycaster</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Exercices VR — A-Frame Grab + Physique</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+  <!-- Core + Physique + Super Hands -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <!-- Physique -->
   <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
-  <!-- Super Hands -->
   <script src="https://cdn.jsdelivr.net/npm/super-hands@4.0.5/dist/super-hands.min.js"></script>
 
   <script>
-    // Locomotion
+    // Locomotion (stick gauche = déplacement)
     AFRAME.registerComponent('joystick-move', {
       schema:{speed:{type:'number',default:3}, invertX:{type:'boolean',default:false}, invertY:{type:'boolean',default:false}},
       init(){
@@ -34,7 +34,7 @@
       tick(t,dt){ this.delta=dt/1000; }
     });
 
-    // Rotation
+    // Rotation (stick droit = yaw)
     AFRAME.registerComponent('joystick-turn', {
       schema:{turnSpeed:{type:'number',default:80}},
       init(){
@@ -47,7 +47,7 @@
       tick(t,dt){ this.delta=dt/1000; }
     });
 
-    // Debug
+    // Debug des événements de grab
     AFRAME.registerComponent('grab-debug', {
       init(){
         const evs=['grab-start','grab-end','hover-start','hover-end','triggerdown','triggerup','gripdown','gripup'];
@@ -69,7 +69,7 @@
     <a-plane rotation="-90 0 0" width="24" height="24" color="#6fae78"
              shadow="receive:true" static-body></a-plane>
 
-    <!-- Objets -->
+    <!-- Objets interactifs -->
     <a-box position="-1.5 0.5 -4" width="1" height="1" depth="1" color="#4CC3D9"
            class="grabbable"
            grabbable hoverable
@@ -82,11 +82,11 @@
               shadow="cast:true; receive:true"
               dynamic-body="mass:1; angularDamping:0.2; linearDamping:0.02"></a-sphere>
 
-    <!-- Rig -->
+    <!-- Rig + camera + mains -->
     <a-entity id="rig" position="0 0 0">
       <a-entity id="playerCam" camera position="0 1.6 0" look-controls wasd-controls="enabled:false"></a-entity>
 
-      <!-- Main gauche avec Raycaster -->
+      <!-- Main gauche (move + laser grab) -->
       <a-entity id="leftHand"
                 oculus-touch-controls="hand: left"
                 joystick-move="invertY:true"
@@ -94,7 +94,7 @@
                 super-hands="grabStartButtons: triggerdown, gripdown; grabEndButtons: triggerup, gripup"
                 grab-debug></a-entity>
 
-      <!-- Main droite avec Raycaster -->
+      <!-- Main droite (turn + laser grab) -->
       <a-entity id="rightHand"
                 oculus-touch-controls="hand: right"
                 joystick-turn
