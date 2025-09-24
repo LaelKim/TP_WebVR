@@ -1,161 +1,167 @@
 <!doctype html>
 <html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>VR – Exo 1 & Exo 2 (A‑Frame)</title>
-    <meta name="color-scheme" content="dark light" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VR – Exo 1 & Exo 2 (SAFE)</title>
 
-    <!-- A‑Frame core -->
-    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
-    <!-- Plugins (utilisés par l'Exo 2 : physique + grabbing) -->
-    <script src="https://cdn.jsdelivr.net/npm/@c-frame/aframe-physics-system@4.2.3/dist/aframe-physics-system.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-physics-extras@6.1.2/dist/aframe-physics-extras.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/super-hands@3.0.5/dist/super-hands.min.js"></script>
+  <!-- Physique (cannon-es via @c-frame) -->
+  <script src="https://cdn.jsdelivr.net/npm/@c-frame/aframe-physics-system@4.2.3/dist/aframe-physics-system.min.js"></script>
 
-    <style>
-      html, body { margin:0; height:100%; background:#000; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-      .hint { position: fixed; left: 12px; bottom: 12px; padding: 8px 12px; color:#fff; background: rgba(0,0,0,.55); border-radius: 8px; font-size: 14px; line-height: 1.35; }
-      .hint kbd{ padding:2px 6px; border:1px solid #888; border-bottom-width:2px; border-radius:4px; background:#111 }
-      .badge { position: fixed; right: 12px; bottom: 12px; font-size:12px; color:#ccc; }
-    </style>
-  </head>
-  <body>
+  <!-- Super-Hands (grab) -->
+  <script src="https://cdn.jsdelivr.net/npm/super-hands@3.0.5/dist/super-hands.min.js"></script>
 
-    <!--
-      Ce fichier couvre Exo 1 (base VR + lumières + ombres + rig) ET Exo 2 (grab + physique).
-      Rien à changer pour tester Exo 1 : la physique/grab ne gênera pas.
-      Pour simplifier, on garde une seule scène avec tout configuré.
-    -->
+  <style>
+    html,body{margin:0;height:100%;background:#000;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    .hint{position:fixed;left:12px;bottom:12px;padding:8px 12px;color:#fff;background:rgba(0,0,0,.55);border-radius:8px;font-size:14px;line-height:1.35}
+    .hint kbd{padding:2px 6px;border:1px solid #888;border-bottom-width:2px;border-radius:4px;background:#111}
+  </style>
+</head>
+<body>
+  <a-scene
+    renderer="colorManagement:true; physicallyCorrectLights:true; antialias:true"
+    shadow="type: pcfsoft"
+    physics="gravity:-9.8"
+    xr-mode-ui="enabled:true">
 
-    <a-scene 
-      shadow="type: pcfsoft" 
-      renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true"
-      physics="driver: local; gravity: -9.8;"
-      xr-mode-ui="enabled: true">
+    <a-assets>
+      <img id="sky" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/sechelt.jpg" crossorigin="anonymous">
+    </a-assets>
 
-      <!-- Debug physique (facultatif) -->
-      <a-entity physics-debug></a-entity>
+    <a-sky src="#sky"></a-sky>
 
-      <!-- Actifs éventuels -->
-      <a-assets>
-        <img id="sky" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/sechelt.jpg" crossorigin="anonymous" />
-      </a-assets>
+    <!-- Lumières -->
+    <a-entity light="type: ambient; intensity: 0.35"></a-entity>
+    <a-entity light="type: directional; intensity: 0.9; castShadow:true" position="3 6 3"></a-entity>
 
-      <!-- Ciel -->
-      <a-sky src="#sky"></a-sky>
+    <!-- Sol -->
+    <a-plane rotation="-90 0 0" width="40" height="40" color="#6b8e23"
+             shadow="receive:true" static-body></a-plane>
 
-      <!-- Lumières (Exo 1) -->
-      <a-entity light="type: ambient; intensity: 0.35"></a-entity>
-      <a-entity light="type: directional; intensity: 0.9; castShadow: true" position="3 6 3"></a-entity>
+    <!-- Objets -->
+    <a-box position="-1 0.5 -3" depth="1" height="1" width="1" color="#4CC3D9"
+           class="grabbable" grabbable dynamic-body shadow="cast:true; receive:true"></a-box>
 
-      <!-- Sol (Exo 1) -->
-      <a-plane rotation="-90 0 0" width="40" height="40" color="#6b8e23"
-               shadow="receive: true" static-body></a-plane>
+    <a-sphere position="1 1.25 -4" radius="1.25" color="#EF2D5E"
+              class="grabbable" grabbable dynamic-body shadow="cast:true; receive:true"></a-sphere>
 
-      <!-- Objets simples (Exo 1) | dynamiques (Exo 2) -->
-      <a-box position="-1 0.5 -3" depth="1" height="1" width="1" color="#4CC3D9"
-             shadow="cast: true; receive: true" class="grabbable" dynamic-body grabbable></a-box>
+    <a-cylinder position="3 1 -5" radius="0.6" height="1.6" color="#FFC65D"
+                class="grabbable" grabbable dynamic-body shadow="cast:true; receive:true"></a-cylinder>
 
-      <a-sphere position="1 1.25 -4" radius="1.25" color="#EF2D5E"
-                shadow="cast: true; receive: true" class="grabbable" dynamic-body hoverable grabbable draggable></a-sphere>
+    <!-- RIG + mains -->
+    <a-entity id="rig" position="0 1.6 3">
+      <a-entity id="hmd" camera look-controls wasd-controls="enabled:false"></a-entity>
 
-      <a-cylinder position="3 1 -5" radius="1" height="2" color="#FFC65D"
-                  shadow="cast: true; receive: true" class="grabbable" dynamic-body hoverable grabbable draggable></a-cylinder>
+      <!-- Main gauche -->
+      <a-entity id="leftHand"
+                hand-controls="hand: left; handModelStyle: lowPoly"
+                super-hands
+                sphere-collider="objects: .grabbable; radius: 0.15"
+                punch-push
+                thumbstick-move="rig: #rig; head: #hmd; speed: 2.8"></a-entity>
 
-      <!-- RIG VR (camera + 2 contrôleurs) (Exo 1) -->
-      <a-entity id="rig" position="0 1.6 3">
-        <a-entity id="hmd" camera look-controls wasd-controls="enabled:false"></a-entity>
+      <!-- Main droite -->
+      <a-entity id="rightHand"
+                hand-controls="hand: right; handModelStyle: lowPoly"
+                super-hands
+                sphere-collider="objects: .grabbable; radius: 0.15"
+                punch-push
+                thumbstick-rotate="rig: #rig; snap: 30; deadzone: 0.2; cooldownMs: 250"></a-entity>
+    </a-entity>
+  </a-scene>
 
-        <!-- Main gauche: déplacement au joystick -->
-        <a-entity id="leftHand"
-                  hand-controls="hand: left; handModelStyle: lowPoly"
-                  super-hands
-                  sphere-collider="objects: .grabbable; radius: 0.14"
-                  thumbstick-move="rig: #rig; head: #hmd; speed: 2.8"></a-entity>
+  <div class="hint">
+    <div><strong>Déplacement</strong> : stick gauche. <strong>Rotation</strong> : stick droit (snap 30°).</div>
+    <div><strong>Grab</strong> : Grip/Trigger. <strong>Pousser/Taper</strong> : touche l’objet → impulsion.</div>
+  </div>
 
-        <!-- Main droite: rotation (snap) au joystick -->
-        <a-entity id="rightHand"
-                  hand-controls="hand: right; handModelStyle: lowPoly"
-                  super-hands
-                  sphere-collider="objects: .grabbable; radius: 0.14"
-                  thumbstick-rotate="rig: #rig; snap: 30; deadzone: 0.2; cooldownMs: 250"></a-entity>
-      </a-entity>
+  <script>
+    // Locomotion
+    AFRAME.registerComponent('thumbstick-move', {
+      schema:{rig:{type:'selector'}, head:{type:'selector'}, speed:{type:'number',default:3}, deadzone:{type:'number',default:0.15}},
+      init(){ this.axis={x:0,y:0};
+        this._onThumb=e=>{this.axis.x=e.detail.x||0; this.axis.y=e.detail.y||0};
+        this._onAxis =e=>{const a=(e.detail&&(e.detail.axis||e.detail))||[]; this.axis.x=a[0]||0; this.axis.y=a[1]||0};
+        this.el.addEventListener('thumbstickmoved',this._onThumb);
+        this.el.addEventListener('axismove',this._onAxis);
+      },
+      remove(){ this.el.removeEventListener('thumbstickmoved',this._onThumb); this.el.removeEventListener('axismove',this._onAxis); },
+      tick(t,dtMs){ if(!dtMs)return; const r=this.data.rig,h=this.data.head; if(!r||!h)return;
+        const dz=this.data.deadzone, ax=Math.abs(this.axis.x)>dz?this.axis.x:0, ay=Math.abs(this.axis.y)>dz?this.axis.y:0;
+        if(!ax && !ay) return;
+        const yaw=h.object3D.rotation.y;
+        const fwd=new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
+        const right=new THREE.Vector3(1,0,0).applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
+        const step=new THREE.Vector3().addScaledVector(fwd,-ay).addScaledVector(right,ax);
+        if(step.lengthSq()===0) return;
+        step.normalize().multiplyScalar(this.data.speed*(dtMs/1000));
+        r.object3D.position.add(step);
+      }
+    });
 
-    </a-scene>
-
-    <div class="hint">
-      <div><strong>Exo 1</strong> — Lancer en HTTPS (WebXR). Entrer en VR, utiliser les <em>joysticks</em> : gauche = avancer/reculer/gauche/droite, droite = tourner (snap 30°).</div>
-      <div style="margin-top:6px"><strong>Exo 2</strong> — Saisir/relâcher: approche un objet et presse <kbd>Grip</kbd> ou <kbd>Trigger</kbd>. Relâche pour le lâcher (gravité active).</div>
-    </div>
-    <div class="badge">A‑Frame 1.6.0 · Physique + Super‑Hands</div>
-
-    <script>
-      // === Déplacement au joystick gauche (translation dans le plan) ===
-      AFRAME.registerComponent('thumbstick-move', {
-        schema: { rig: {type:'selector'}, head:{type:'selector'}, speed:{type:'number', default: 3}, deadzone:{type:'number', default:0.15} },
-        init: function () {
-          this.axis = {x:0, y:0};
-          this._onThumb = (e)=>{ this.axis.x = e.detail.x || 0; this.axis.y = e.detail.y || 0; };
-          this._onAxis  = (e)=>{ const a = (e.detail && (e.detail.axis || e.detail)) || []; this.axis.x = a[0] || 0; this.axis.y = a[1] || 0; };
-          this.el.addEventListener('thumbstickmoved', this._onThumb);
-          this.el.addEventListener('axismove', this._onAxis);
-        },
-        remove: function(){
-          this.el.removeEventListener('thumbstickmoved', this._onThumb);
-          this.el.removeEventListener('axismove', this._onAxis);
-        },
-        tick: function (time, dtMs) {
-          if (!dtMs) return;
-          const rig = this.data.rig, head = this.data.head; if (!rig || !head) return;
-          const dz = this.data.deadzone;
-          const ax = Math.abs(this.axis.x) > dz ? this.axis.x : 0;
-          const ay = Math.abs(this.axis.y) > dz ? this.axis.y : 0; // haut = -y
-          if (!ax && !ay) return;
-          const yaw = head.object3D.rotation.y;
-          const fwd = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-          const right = new THREE.Vector3(1,0,0).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-          const step = new THREE.Vector3().addScaledVector(fwd, -ay).addScaledVector(right, ax);
-          if (step.lengthSq() === 0) return;
-          const dt = dtMs / 1000;
-          step.normalize().multiplyScalar(this.data.speed * dt);
-          rig.object3D.position.add(step);
-        }
-      });
-
-      // === Rotation au joystick droit (snap ou lisse) ===
-      AFRAME.registerComponent('thumbstick-rotate', {
-        schema: { rig: {type:'selector'}, snap: {type:'number', default: 30}, deadzone:{type:'number', default:0.2}, cooldownMs:{type:'int', default: 250}, speed:{type:'number', default: 1.5} },
-        init: function () {
-          this.x = 0; this.lastSnap = 0;
-          this._onThumb = (e)=>{ this.x = e.detail.x || 0; };
-          this._onAxis  = (e)=>{ const a = (e.detail && (e.detail.axis || e.detail)) || []; this.x = a[0] || 0; };
-          this.el.addEventListener('thumbstickmoved', this._onThumb);
-          this.el.addEventListener('axismove', this._onAxis);
-        },
-        remove: function(){ this.el.removeEventListener('thumbstickmoved', this._onThumb); this.el.removeEventListener('axismove', this._onAxis); },
-        tick: function(time, dtMs){
-          if (!dtMs) return;
-          const rig = this.data.rig; if (!rig) return;
-          const dz = this.data.deadzone; const x = Math.abs(this.x) > dz ? this.x : 0;
-          if (!x) return;
-          if (this.data.snap > 0) {
-            const now = performance.now();
-            if (now - this.lastSnap >= this.data.cooldownMs) {
-              const dir = Math.sign(x);
-              rig.object3D.rotation.y -= THREE.MathUtils.degToRad(this.data.snap) * dir;
-              this.lastSnap = now;
-            }
-          } else {
-            const dt = dtMs / 1000;
-            rig.object3D.rotation.y -= x * this.data.speed * dt * 2.5; // rotation lisse
+    AFRAME.registerComponent('thumbstick-rotate', {
+      schema:{rig:{type:'selector'}, snap:{type:'number',default:30}, deadzone:{type:'number',default:0.2}, cooldownMs:{type:'int',default:250}, speed:{type:'number',default:1.5}},
+      init(){ this.x=0; this.lastSnap=0;
+        this._onThumb=e=>{this.x=e.detail.x||0};
+        this._onAxis =e=>{const a=(e.detail&&(e.detail.axis||e.detail))||[]; this.x=a[0]||0};
+        this.el.addEventListener('thumbstickmoved',this._onThumb);
+        this.el.addEventListener('axismove',this._onAxis);
+      },
+      remove(){ this.el.removeEventListener('thumbstickmoved',this._onThumb); this.el.removeEventListener('axismove',this._onAxis); },
+      tick(t,dtMs){ if(!dtMs)return; const rig=this.data.rig; if(!rig)return;
+        const dz=this.data.deadzone; const x=Math.abs(this.x)>dz?this.x:0; if(!x)return;
+        if(this.data.snap>0){ const now=performance.now();
+          if(now-this.lastSnap>=this.data.cooldownMs){ const dir=Math.sign(x);
+            rig.object3D.rotation.y -= THREE.MathUtils.degToRad(this.data.snap)*dir;
+            this.lastSnap=now;
           }
+        } else {
+          rig.object3D.rotation.y -= x*this.data.speed*(dtMs/1000)*2.5;
         }
-      });
+      }
+    });
 
-      // Astuce (facultatif) : corriger l'offset des objets si vous changez leurs tailles dynamiquement
-      // en recalculant les shapes Cannon / Ammo selon la lib de physique.
-    </script>
-  </body>
+    // Pousser/Taper sans physics-extras : applique une petite impulsion à l'objet touché
+    // Déclenché sur "hover-start" de super-hands (quand la main rentre en contact avec .grabbable)
+    AFRAME.registerComponent('punch-push', {
+      schema:{impulse:{type:'number', default: 1.5}}, // augmente si tu veux "taper" plus fort
+      init(){
+        this.onHoverStart = (e)=>{
+          const target = e.detail && (e.detail.hovered || e.detail.el) || e.target;
+          const obj = target && target.closest ? target : (e.detail && e.detail.targetEl) || null;
+          const el = (obj && obj.classList && obj.classList.contains('grabbable')) ? obj : null;
+          if (!el || !el.body) return; // besoin d’un dynamic-body déjà initialisé
+
+          // Direction de la main (local -Z) en monde
+          const dir = new THREE.Vector3(0,0,-1);
+          this.el.object3D.updateWorldMatrix(true, false);
+          this.el.object3D.localToWorld(dir).sub(this.el.object3D.getWorldPosition(new THREE.Vector3())).normalize();
+
+          // Point d’application = position monde de l’objet
+          const worldPoint = new THREE.Vector3();
+          el.object3D.getWorldPosition(worldPoint);
+
+          // Impulsion
+          const strength = this.data.impulse;
+          const impulse = new CANNON.Vec3(dir.x*strength, dir.y*strength*0.2, dir.z*strength); // un peu vers l’avant
+          const point = new CANNON.Vec3(worldPoint.x, worldPoint.y, worldPoint.z);
+
+          try {
+            // API cannon-es via physics-system
+            if (el.body && el.body.applyImpulse) {
+              el.body.applyImpulse(impulse, point);
+            }
+          } catch(_){}
+        };
+        this.el.addEventListener('hover-start', this.onHoverStart);
+      },
+      remove(){
+        this.el.removeEventListener('hover-start', this.onHoverStart);
+      }
+    });
+  </script>
+</body>
 </html>
