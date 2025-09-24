@@ -67,14 +67,14 @@
 
         <!-- Main gauche: déplacement au joystick -->
         <a-entity id="leftHand"
-                  meta-touch-controls="hand: left"
+                  hand-controls="hand: left; handModelStyle: lowPoly"
                   super-hands
                   sphere-collider="objects: .grabbable"
                   thumbstick-move="rig: #rig; head: #hmd; speed: 2.8"></a-entity>
 
         <!-- Main droite: rotation (snap) au joystick -->
         <a-entity id="rightHand"
-                  meta-touch-controls="hand: right"
+                  hand-controls="hand: right; handModelStyle: lowPoly"
                   super-hands
                   sphere-collider="objects: .grabbable"
                   thumbstick-rotate="rig: #rig; snap: 30; deadzone: 0.2; cooldownMs: 250"></a-entity>
@@ -91,58 +91,64 @@
     <script>
       // === Déplacement au joystick gauche (translation dans le plan) ===
       AFRAME.registerComponent('thumbstick-move', {
-        schema: { rig: {type:'selector'}, head:{type:'selector'}, speed:{type:'number', default: 3} },
+        schema: { rig: {type:'selector'}, head:{type:'selector'}, speed:{type:'number', default: 3}, deadzone:{type:'number', default:0.15} },
         init: function () {
-          this.dead = 0.1;
           this.axis = {x:0, y:0};
-          this._onMove = this._onMove.bind(this);
-          this.el.addEventListener('thumbstickmoved', this._onMove);
+          this._onThumb = (e)=>{ this.axis.x = e.detail.x || 0; this.axis.y = e.detail.y || 0; };
+          this._onAxis  = (e)=>{ const a = (e.detail && (e.detail.axis || e.detail)) || []; this.axis.x = a[0] || 0; this.axis.y = a[1] || 0; };
+          this.el.addEventListener('thumbstickmoved', this._onThumb);
+          this.el.addEventListener('axismove', this._onAxis);
         },
-        remove: function(){ this.el.removeEventListener('thumbstickmoved', this._onMove); },
-        _onMove: function (evt) {
-          const rig = this.data.rig, head = this.data.head;
-          if (!rig || !head) return;
-          const ax = evt.detail.x || 0, ay = evt.detail.y || 0;
-          const moveX = Math.abs(ax) > this.dead ? ax : 0;
-          const moveY = Math.abs(ay) > this.dead ? ay : 0; // vers l'avant quand négatif
-          if (!moveX && !moveY) return;
-
-          // Yaw du HMD – ignore pitch/roll
+        remove: function(){
+          this.el.removeEventListener('thumbstickmoved', this._onThumb);
+          this.el.removeEventListener('axismove', this._onAxis);
+        },
+        tick: function (time, dtMs) {
+          if (!dtMs) return;
+          const rig = this.data.rig, head = this.data.head; if (!rig || !head) return;
+          const dz = this.data.deadzone;
+          const ax = Math.abs(this.axis.x) > dz ? this.axis.x : 0;
+          const ay = Math.abs(this.axis.y) > dz ? this.axis.y : 0; // haut = -y
+          if (!ax && !ay) return;
           const yaw = head.object3D.rotation.y;
           const fwd = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
           const right = new THREE.Vector3(1,0,0).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-          const step = new THREE.Vector3()
-            .addScaledVector(fwd, -moveY) // stick haut = -Y
-            .addScaledVector(right, moveX);
+          const step = new THREE.Vector3().addScaledVector(fwd, -ay).addScaledVector(right, ax);
           if (step.lengthSq() === 0) return;
-          step.normalize().multiplyScalar(this.data.speed * (1/60)); // ~60fps
+          const dt = dtMs / 1000;
+          step.normalize().multiplyScalar(this.data.speed * dt);
           rig.object3D.position.add(step);
         }
       });
 
       // === Rotation au joystick droit (snap ou lisse) ===
       AFRAME.registerComponent('thumbstick-rotate', {
-        schema: { rig: {type:'selector'}, snap: {type:'number', default: 0}, deadzone:{type:'number', default:0.1}, cooldownMs:{type:'int', default: 250}, speed:{type:'number', default: 1.5} },
+        schema: { rig: {type:'selector'}, snap: {type:'number', default: 30}, deadzone:{type:'number', default:0.2}, cooldownMs:{type:'int', default: 250}, speed:{type:'number', default: 1.5} },
         init: function () {
-          this.lastSnap = 0;
-          this._onMove = (e) => {
-            const x = e.detail.x || 0;
-            const dz = Math.abs(x) > this.data.deadzone ? x : 0;
-            const rig = this.data.rig; if (!rig) return;
-            if (this.data.snap > 0) {
-              const now = performance.now();
-              if (dz && now - this.lastSnap > this.data.cooldownMs) {
-                const dir = Math.sign(dz);
-                rig.object3D.rotation.y -= THREE.MathUtils.degToRad(this.data.snap) * dir;
-                this.lastSnap = now;
-              }
-            } else {
-              rig.object3D.rotation.y -= dz * this.data.speed * 0.05; // rotation lisse
-            }
-          };
-          this.el.addEventListener('thumbstickmoved', this._onMove);
+          this.x = 0; this.lastSnap = 0;
+          this._onThumb = (e)=>{ this.x = e.detail.x || 0; };
+          this._onAxis  = (e)=>{ const a = (e.detail && (e.detail.axis || e.detail)) || []; this.x = a[0] || 0; };
+          this.el.addEventListener('thumbstickmoved', this._onThumb);
+          this.el.addEventListener('axismove', this._onAxis);
         },
-        remove: function(){ this.el.removeEventListener('thumbstickmoved', this._onMove); }
+        remove: function(){ this.el.removeEventListener('thumbstickmoved', this._onThumb); this.el.removeEventListener('axismove', this._onAxis); },
+        tick: function(time, dtMs){
+          if (!dtMs) return;
+          const rig = this.data.rig; if (!rig) return;
+          const dz = this.data.deadzone; const x = Math.abs(this.x) > dz ? this.x : 0;
+          if (!x) return;
+          if (this.data.snap > 0) {
+            const now = performance.now();
+            if (now - this.lastSnap >= this.data.cooldownMs) {
+              const dir = Math.sign(x);
+              rig.object3D.rotation.y -= THREE.MathUtils.degToRad(this.data.snap) * dir;
+              this.lastSnap = now;
+            }
+          } else {
+            const dt = dtMs / 1000;
+            rig.object3D.rotation.y -= x * this.data.speed * dt * 2.5; // rotation lisse
+          }
+        }
       });
 
       // Astuce (facultatif) : corriger l'offset des objets si vous changez leurs tailles dynamiquement
